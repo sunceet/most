@@ -1,27 +1,15 @@
 <script setup>
+import { useProductsStore } from "~/stores/productStores";
+
+const productsStore = useProductsStore();
+await productsStore.fetchProducts();
+console.log(productsStore.products);
+
 const selectedCategory = ref("all");
 const searchQuery = ref("");
 
-const { data: products, error } = await useFetch(
-  "https://fakestoreapi.com/products",
-  {
-    transform: (products) =>
-      products.map((p) => ({
-        id: p.id,
-        title: p.title,
-        price: p.price,
-        image: p.image,
-        category: p.category,
-      })),
-  }
-);
-// console.log(products);
-
-// поиск и фильтрация
 const filteredProducts = computed(() => {
-  if (!products.value) return [];
-  console.log(products);
-  return products.value.filter((product) => {
+  return productsStore.products.filter((product) => {
     const matchesCategory =
       selectedCategory.value === "all" ||
       product.category === selectedCategory.value;
@@ -68,7 +56,6 @@ const filteredProducts = computed(() => {
               d="M3.05193 3.05193C0.316021 5.78888 0.316021 10.2222 3.05193 12.9581C5.52305 15.4292 9.38022 15.6682 12.1192 13.6749L17.1235 18.6792C17.5518 19.1074 18.251 19.1064 18.6792 19.1074C19.1064 18.251 19.1074 17.5518 18.6792 17.1235L13.6749 12.1192C15.6682 9.37918 15.4292 5.52305 12.9581 3.05193C10.2222 0.316022 5.78888 0.316022 3.05193 3.05193ZM4.60763 4.60763C2.73024 6.48398 2.73024 9.5271 4.60763 11.4034C6.48398 13.2798 9.5271 13.2798 11.4034 11.4034C13.2798 9.5271 13.2798 6.48398 11.4034 4.60763C9.5271 2.73024 6.48398 2.73024 4.60763 4.60763Z"
             />
           </svg>
-
           <input
             v-model="searchQuery"
             class="w-full py-2 pl-10 pr-8 rounded-xl outline-none border focus:border-gray-400"
@@ -94,9 +81,11 @@ const filteredProducts = computed(() => {
           </button>
         </div>
       </div>
-      <div v-if="error" class="text-red-500 text-center">
-        Ошибка загрузки данных!
+
+      <div v-if="productsStore.error" class="text-red-500 text-center">
+        {{ productsStore.error }}
       </div>
+
       <div v-else class="my-8 grid sm:grid-cols-4 gap-8">
         <NuxtLink
           v-for="product in filteredProducts"

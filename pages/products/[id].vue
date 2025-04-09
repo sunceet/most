@@ -1,3 +1,19 @@
+<script setup>
+import { useProductsStore } from "~/stores/productStores";
+
+const route = useRoute();
+const productsStore = useProductsStore();
+const productId = parseInt(route.params.id);
+
+let product = productsStore.getProductById(productId);
+
+if (!product) {
+  await productsStore.fetchProduct(productId);
+  product = productsStore.getProductById(productId);
+}
+console.log(product);
+</script>
+
 <template>
   <div class="min-h-screen bg-gradient-to-r from-gray-500 to-white-100">
     <div class="flex items-center justify-center h-screen">
@@ -6,8 +22,8 @@
           ← Назад
         </NuxtLink>
 
-        <div v-if="error" class="text-red-500">
-          Ошибка загрузки данных: {{ error.message }}
+        <div v-if="productsStore.error" class="text-red-500">
+          {{ productsStore.error }}
         </div>
 
         <div v-else class="text-center">
@@ -19,18 +35,13 @@
             alt="Product Image"
             class="w-60 h-60 object-contain mx-auto mb-4 border border-gray-900 shadow-xl rounded-xl"
           />
-          <h2 class="text-xl text-slate-700 mb-4">
-            {{ product.description }}
-          </h2>
+          <h2 class="text-xl text-slate-700 mb-4">{{ product.description }}</h2>
           <div class="flex items-rig justify-end space-x-2">
             <img src="../../content/star.svg" class="w-7 h-7" />
-            <h4 class="text-xl text-yellow-500">
-              {{ product.rating.rate }}
-            </h4>
+            <h4 class="text-xl text-yellow-500">{{ product.rating.rate }}</h4>
           </div>
           <h5 class="text-0.5xl text-right text-zinc-700">
-            Count:
-            {{ product.rating.count }}
+            Count: {{ product.rating.count }}
           </h5>
           <h3 class="text-xl font-bold text-zinc-700">
             Price: ${{ product.price }}
@@ -40,20 +51,3 @@
     </div>
   </div>
 </template>
-
-<script setup>
-const route = useRoute();
-
-const { data: product, error } = await useFetch(
-  `https://fakestoreapi.com/products/${route.params.id}`,
-  {
-    transform: (data) => ({
-      ...data,
-      rating: {
-        rate: data.rating.rate,
-        count: data.rating.count,
-      },
-    }),
-  }
-);
-</script>
